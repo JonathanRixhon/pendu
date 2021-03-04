@@ -5,7 +5,7 @@
     <img src="images/pendu8.gif" alt="Tu es pendu">
 </div>
 <div>
-    <p>Voici les lettres que tu as essayées, dans l’ordre alphabétique&nbsp;: <?= $triedLetters ?></p>
+    <p>Voici les lettres que tu as essayées, dans l’ordre alphabétique&nbsp;: <?= $triedLettersStr ?></p>
 </div>
 <div>
     <p><a href="index.php">Recommence&nbsp;!</a></p>

@@ -8,6 +8,7 @@ $words = file('datas/words.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
 $wordsCount = count($words);
 
 if ($_SERVER['REQUEST_METHOD'] === "GET") {
+
     $wordIndex = rand(0, $wordsCount - 1);
     $word = $words[$wordIndex];
     $lettersCount = strlen($word);
@@ -42,24 +43,27 @@ if ($_SERVER['REQUEST_METHOD'] === "GET") {
         'z' => true,
     ];
     $replacementString = str_pad("", $lettersCount, REPLACEMENT_CHAR);
-
-    /* COOKIES  Remplacer ce qu'il y a dans le post */
-    setcookie("wordIndex", $wordIndex);
 } elseif ($_SERVER['REQUEST_METHOD'] === "POST") {
     //Données de la requete
-    $wordIndex = $_COOKIE['wordIndex'];
-    $letters = json_decode($_COOKIE['letters'], true);
-    $triedLetter = $_POST['triedLetter'];
+    $wordIndex = $_POST['wordIndex'];
     $word = strtolower($words[$wordIndex]);
+    $triedLetter = $_POST['triedLetter'];
+    $letters = unserialize(urldecode($_POST['serializedLetters']));
     //calcul des valeurs du state
     $letters[$triedLetter] = false;
     $triedLetters = array_filter($letters, fn ($b) => !$b);
 
+    /* 
+    en fleché on peut utilisé $word;
+    $trials = count(array_filter(array_keys($triedLetters), function ($l) use ($word) {
+        return !str_contains($word, $l);
+    })); */
 
     $trials = count(array_filter(array_keys($triedLetters), fn ($l) => !str_contains($word, $l)));
     $lettersCount = strlen($word);
     $replacementString = str_pad("", $lettersCount, REPLACEMENT_CHAR);
 
+    /* $replacementString = str_pad("", $lettersCount, REPLACEMENT_CHAR); */
     //Checking letters int the word
     $letterFound = false;
     for ($i = 0; $i < $lettersCount; $i++) {
@@ -69,13 +73,14 @@ if ($_SERVER['REQUEST_METHOD'] === "GET") {
         }
     }
 
+    //
     if (!$letterFound) {
         if (MAX_TRIALS <= $trials) {
             $gameState = "lost";
-        }
-    } else {
-        if ($word === $replacementString) {
-            $gameState = 'win';
+        } else {
+            if ($word === $replacementString) {
+                $gameState = 'win';
+            }
         }
     }
 } else {
@@ -83,11 +88,11 @@ if ($_SERVER['REQUEST_METHOD'] === "GET") {
     exit("vous n'avez pas le droi d'exécuter cette requête");
 };
 
-//Setting up cookies changes
-setcookie("letters", json_encode($letters));
-//----------------------------------------------------
 echo $word ?? '';
+
+$serializedLetters = urlencode(serialize($letters));
 $triedLettersStr = implode(',', array_keys($triedLetters))
+/* if (isset($_POST["serializedLetters"])) echo $serializedLetters; */
 ?>
 <!DOCTYPE html>
 <html lang="fr">
